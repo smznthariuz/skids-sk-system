@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { IoWalletOutline, IoCheckmarkCircle, IoTimeOutline } from 'react-icons/io5';
 import Card from '../../components/common/Card';
 import { getBudgetReports } from '../../utils/mockData';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { IoPaperPlaneOutline, IoChatbubbleOutline } from 'react-icons/io5';
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';

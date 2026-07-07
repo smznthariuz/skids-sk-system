@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { IoCalendarOutline, IoLocationOutline, IoTimeOutline } from 'react-icons/io5';
+import { useState, useEffect } from 'react';
+import { IoLocationOutline, IoTimeOutline } from 'react-icons/io5';
 import Card from '../../components/common/Card';
 import { getEvents } from '../../utils/mockData';
 

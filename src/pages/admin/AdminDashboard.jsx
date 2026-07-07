@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   IoPeopleOutline, 
   IoMegaphoneOutline, 
@@ -7,7 +7,7 @@ import {
   IoTimeOutline
 } from 'react-icons/io5';
 import Card from '../../components/common/Card';
-import { getDashboardStats, mockActivityLog } from '../../utils/mockData';
+import { getDashboardStats } from '../../utils/mockData';
 
 // Placeholder for future API call
 // import { getDashboardStats } from '../../services/api';

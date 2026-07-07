@@ -46,6 +46,8 @@ apiClient.interceptors.response.use(
 export const api = {
   // Auth
   auth: {
+    google: (credential) => apiClient.post('/auth/google', { credential }),
+    me: () => apiClient.get('/auth/me'),
     login: (credentials) => apiClient.post('/auth/login', credentials),
     logout: () => apiClient.post('/auth/logout'),
     register: (data) => apiClient.post('/auth/register', data),

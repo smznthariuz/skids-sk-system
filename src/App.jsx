@@ -1,12 +1,22 @@
-import React from 'react';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { BrowserRouter } from 'react-router-dom';
+import { AuthProvider } from './hooks/useAuth';
 import AppRoutes from './routes';
 
 function App() {
-  return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+  const app = (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+
+  return googleClientId ? (
+    <GoogleOAuthProvider clientId={googleClientId}>{app}</GoogleOAuthProvider>
+  ) : (
+    app
   );
 }
 

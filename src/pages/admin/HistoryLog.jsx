@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { IoTimeOutline, IoSearchOutline } from 'react-icons/io5';
+import { useState, useEffect } from 'react';
+import { IoSearchOutline } from 'react-icons/io5';
 import Card from '../../components/common/Card';
 import Table from '../../components/common/Table';
 import Input from '../../components/common/Input';

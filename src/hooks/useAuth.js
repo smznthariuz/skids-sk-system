@@ -1,79 +1,96 @@
-import { useState, useEffect } from 'react';
+import {
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { api } from '../services/api';
 
-// Placeholder auth hook - will be replaced with actual auth logic
-export const useAuth = () => {
+const TOKEN_KEY = 'authToken';
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem(TOKEN_KEY)));
 
   useEffect(() => {
-    // Check for existing session
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      // Future API call to validate token
-      // api.auth.validateToken()
-      //   .then(response => {
-      //     setUser(response.data.user);
-      //   })
-      //   .catch(() => {
-      //     localStorage.removeItem('authToken');
-      //   })
-      //   .finally(() => setLoading(false));
-      
-      // Mock user for development
-      setUser({
-        id: 1,
-        name: 'SK Chairwoman',
-        email: 'admin@sk.gov.ph',
-        role: 'admin'
-      });
-      setLoading(false);
-    } else {
-      setLoading(false);
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      return undefined;
+    }
+
+    let isMounted = true;
+
+    const loadCurrentUser = async () => {
+      try {
+        const response = await api.auth.me();
+        if (isMounted) {
+          setUser(response.data.user);
+        }
+      } catch {
+        localStorage.removeItem(TOKEN_KEY);
+        if (isMounted) {
+          setUser(null);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadCurrentUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const loginWithGoogle = useCallback(async (credential) => {
+    const response = await api.auth.google(credential);
+    localStorage.setItem(TOKEN_KEY, response.data.token);
+    setUser(response.data.user);
+    return response.data.user;
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await api.auth.logout();
+    } catch {
+      // Token cleanup should happen even if the server is unavailable.
+    } finally {
+      localStorage.removeItem(TOKEN_KEY);
+      setUser(null);
     }
   }, []);
 
-  const login = async (email, password) => {
-    // Future API call
-    // const response = await api.auth.login({ email, password });
-    // localStorage.setItem('authToken', response.data.token);
-    // setUser(response.data.user);
-    // return response.data;
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      loginWithGoogle,
+      logout,
+      isAdmin: user?.role === 'admin',
+      isYouth: user?.role === 'user',
+      isAuthenticated: Boolean(user),
+    }),
+    [user, loading, loginWithGoogle, logout]
+  );
 
-    // Mock login
-    if (email === 'admin@sk.gov.ph' && password === 'password') {
-      const userData = {
-        id: 1,
-        name: 'SK Chairwoman',
-        email: 'admin@sk.gov.ph',
-        role: 'admin'
-      };
-      localStorage.setItem('authToken', 'mock-token');
-      setUser(userData);
-      return { user: userData };
-    }
-    throw new Error('Invalid credentials');
-  };
+  return createElement(AuthContext.Provider, { value }, children);
+};
 
-  const logout = () => {
-    // Future API call
-    // await api.auth.logout();
-    
-    localStorage.removeItem('authToken');
-    setUser(null);
-  };
+export const useAuth = () => {
+  const context = useContext(AuthContext);
 
-  const isAdmin = user?.role === 'admin';
-  const isYouth = user?.role === 'user';
+  if (!context) {
+    throw new Error('useAuth must be used inside AuthProvider');
+  }
 
-  return {
-    user,
-    loading,
-    login,
-    logout,
-    isAdmin,
-    isYouth,
-    isAuthenticated: !!user
-  };
+  return context;
 };
 
 export default useAuth;

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   IoMenu, 
   IoClose, 
@@ -8,6 +8,7 @@ import {
   IoSettingsOutline,
   IoLogOutOutline
 } from 'react-icons/io5';
+import useAuth from '../../hooks/useAuth';
 
 const Navbar = ({ 
   title = 'SKIDS', 
@@ -18,7 +19,18 @@ const Navbar = ({
   role = 'admin'
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const profilePath = role === 'admin' ? '/admin/profile' : '/user/profile';
+  const { logout, user } = useAuth();
+  const navigate = useNavigate();
+  const currentRole = user?.role || role;
+  const displayName = user?.name || userName;
+  const displayRole = user?.role === 'admin' ? 'Admin' : userRole;
+  const profilePath = currentRole === 'admin' ? '/admin/profile' : '/user/profile';
+
+  const handleLogout = async () => {
+    await logout();
+    setIsDropdownOpen(false);
+    navigate('/login', { replace: true });
+  };
 
   return (
     <nav className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-30 h-16">
@@ -50,15 +62,15 @@ const Navbar = ({
             >
               <IoPersonCircleOutline className="w-8 h-8 text-gray-600" />
               <span className="hidden md:inline text-sm font-medium text-gray-700">
-                {userName}
+                {displayName}
               </span>
             </button>
 
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                 <div className="px-4 py-2 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">{userName}</p>
-                  <p className="text-xs text-gray-500">{userRole}</p>
+                  <p className="text-sm font-medium text-gray-900">{displayName}</p>
+                  <p className="text-xs text-gray-500">{displayRole}</p>
                 </div>
                 <Link
                   to={profilePath}
@@ -69,6 +81,7 @@ const Navbar = ({
                   Profile Settings
                 </Link>
                 <button
+                  onClick={handleLogout}
                   className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200 w-full"
                 >
                   <IoLogOutOutline className="w-4 h-4" />

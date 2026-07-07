@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { IoAddOutline, IoPencilOutline, IoTrashOutline } from 'react-icons/io5';
 import Card from '../../components/common/Card';
 import Table from '../../components/common/Table';

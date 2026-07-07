@@ -1,7 +1,8 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import AdminLayout from '../layouts/AdminLayout';
 import UserLayout from '../layouts/UserLayout';
+import Login from '../pages/auth/Login';
+import useAuth from '../hooks/useAuth';
 
 // Admin Pages
 import AdminDashboard from '../pages/admin/AdminDashboard';
@@ -23,12 +24,80 @@ import Documents from '../pages/user/Documents';
 import UserMessages from '../pages/user/UserMessages';
 import UserProfile from '../pages/user/UserProfile';
 
-const isAdmin = true;
+const LoadingScreen = () => (
+  <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="text-center">
+      <div className="mx-auto h-10 w-10 rounded-full border-4 border-primary-200 border-t-primary-600 animate-spin" />
+      <p className="mt-4 text-sm font-medium text-gray-600">Loading SKIDS...</p>
+    </div>
+  </div>
+);
+
+const roleHome = (role) => (role === 'admin' ? '/admin' : '/user');
+
+const ProtectedRoute = ({ children, role }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  if (role && user.role !== role) {
+    return <Navigate to={roleHome(user.role)} replace />;
+  }
+
+  return children;
+};
+
+const GuestRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  if (user) {
+    return <Navigate to={roleHome(user.role)} replace />;
+  }
+
+  return children;
+};
+
+const HomeRedirect = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  return <Navigate to={user ? roleHome(user.role) : '/login'} replace />;
+};
 
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/admin" element={<AdminLayout />}>
+      <Route
+        path="/login"
+        element={
+          <GuestRoute>
+            <Login />
+          </GuestRoute>
+        }
+      />
+
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute role="admin">
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route index element={<AdminDashboard />} />
         <Route path="youth" element={<YouthManagement />} />
         <Route path="announcements" element={<AdminAnnouncements />} />
@@ -40,7 +109,14 @@ const AppRoutes = () => {
         <Route path="profile" element={<AdminProfile />} />
       </Route>
 
-      <Route path="/user" element={<UserLayout />}>
+      <Route
+        path="/user"
+        element={
+          <ProtectedRoute role="user">
+            <UserLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route index element={<UserDashboard />} />
         <Route path="announcements" element={<Announcements />} />
         <Route path="events" element={<EventsCalendar />} />
@@ -50,8 +126,8 @@ const AppRoutes = () => {
         <Route path="profile" element={<UserProfile />} />
       </Route>
 
-      {/* Default redirect */}
-      <Route path="/" element={<Navigate to={isAdmin ? '/admin' : '/user'} replace />} />
+      <Route path="/" element={<HomeRedirect />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
