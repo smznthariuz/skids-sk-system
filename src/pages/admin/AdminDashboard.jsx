@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { 
-  IoPeopleOutline, 
+import {
+  IoPeopleOutline,
   IoMegaphoneOutline, 
   IoCalendarOutline, 
   IoChatbubbleOutline,
   IoTimeOutline
 } from 'react-icons/io5';
 import Card from '../../components/common/Card';
+import { SkeletonCard, SkeletonList } from '../../components/common/Skeleton';
 import { getDashboardStats } from '../../utils/mockData';
 
 // Placeholder for future API call
@@ -45,6 +46,7 @@ const AdminDashboard = () => {
     unreadMessages: 0
   });
   const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Future API call: fetchDashboardStats()
@@ -62,6 +64,7 @@ const AdminDashboard = () => {
       unreadMessages: dashboardStats.unreadMessages
     });
     setActivities(dashboardStats.recentActivities);
+    setLoading(false);
   }, []);
 
   return (
@@ -72,37 +75,48 @@ const AdminDashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="Total Youth Members"
-          value={stats.totalYouth}
-          icon={IoPeopleOutline}
-          color="primary"
-        />
-        <StatCard
-          title="Announcements"
-          value={stats.totalAnnouncements}
-          icon={IoMegaphoneOutline}
-          color="green"
-        />
-        <StatCard
-          title="Upcoming Events"
-          value={stats.totalEvents}
-          icon={IoCalendarOutline}
-          color="yellow"
-        />
-        <StatCard
-          title="Messages"
-          value={stats.totalMessages}
-          icon={IoChatbubbleOutline}
-          color="purple"
-          subtitle={`${stats.unreadMessages} unread`}
-        />
-      </div>
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {Array.from({ length: 4 }, (_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard
+            title="Total Youth Members"
+            value={stats.totalYouth}
+            icon={IoPeopleOutline}
+            color="primary"
+          />
+          <StatCard
+            title="Announcements"
+            value={stats.totalAnnouncements}
+            icon={IoMegaphoneOutline}
+            color="green"
+          />
+          <StatCard
+            title="Upcoming Events"
+            value={stats.totalEvents}
+            icon={IoCalendarOutline}
+            color="yellow"
+          />
+          <StatCard
+            title="Messages"
+            value={stats.totalMessages}
+            icon={IoChatbubbleOutline}
+            color="purple"
+            subtitle={`${stats.unreadMessages} unread`}
+          />
+        </div>
+      )}
 
       {/* Recent Activity */}
       <Card title="Recent Activity" className="p-6">
-        <div className="space-y-4">
+        {loading ? (
+          <SkeletonList rows={4} />
+        ) : (
+          <div className="space-y-4">
           {activities.map((activity) => (
             <div key={activity.id} className="flex items-start gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
               <div className="p-2 bg-gray-100 rounded-lg">
@@ -117,7 +131,8 @@ const AdminDashboard = () => {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
       </Card>
     </div>
   );

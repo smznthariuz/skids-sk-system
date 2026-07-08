@@ -5,6 +5,7 @@ import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Modal from '../../components/common/Modal';
+import { SkeletonTable } from '../../components/common/Skeleton';
 import { getYouthProfiles } from '../../utils/mockData';
 
 // Placeholder for future API calls
@@ -12,6 +13,7 @@ import { getYouthProfiles } from '../../utils/mockData';
 
 const YouthManagement = () => {
   const [youthData, setYouthData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedYouth, setSelectedYouth] = useState(null);
@@ -35,6 +37,7 @@ const YouthManagement = () => {
 
     const data = getYouthProfiles();
     setYouthData(data);
+    setLoading(false);
   }, []);
 
   const columns = [
@@ -172,11 +175,15 @@ const YouthManagement = () => {
           </Button>
         </div>
 
-        <Table
-          columns={columns}
-          data={filteredData}
-          emptyMessage="No youth members found."
-        />
+        {loading ? (
+          <SkeletonTable rows={5} columns={6} />
+        ) : (
+          <Table
+            columns={columns}
+            data={filteredData}
+            emptyMessage="No youth members found."
+          />
+        )}
       </Card>
 
       {/* Add/Edit Modal */}

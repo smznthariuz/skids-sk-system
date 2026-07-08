@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { IoWalletOutline, IoCheckmarkCircle, IoTimeOutline } from 'react-icons/io5';
 import Card from '../../components/common/Card';
+import { SkeletonCard, SkeletonList } from '../../components/common/Skeleton';
 import { getBudgetReports } from '../../utils/mockData';
 
 const BudgetTransparency = () => {
   const [budgetReports, setBudgetReports] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Future API call: fetchBudgetReports()
@@ -13,6 +15,7 @@ const BudgetTransparency = () => {
     //   .catch(error => console.error('Error fetching budget data:', error));
 
     setBudgetReports(getBudgetReports());
+    setLoading(false);
   }, []);
 
   const totalBudget = budgetReports.reduce((sum, report) => {
@@ -33,7 +36,14 @@ const BudgetTransparency = () => {
         <p className="text-gray-500 mt-1">View SK budget reports and fund allocations.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          {Array.from({ length: 3 }, (_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <Card className="p-6 text-center">
           <p className="text-sm text-gray-500">Total Budget</p>
           <p className="text-2xl font-bold text-primary-600">
@@ -50,10 +60,13 @@ const BudgetTransparency = () => {
             {budgetReports.filter(r => r.status === 'Approved').length}
           </p>
         </Card>
-      </div>
+        </div>
+      )}
 
       <div className="space-y-4">
-        {budgetReports.length === 0 ? (
+        {loading ? (
+          <SkeletonList rows={4} />
+        ) : budgetReports.length === 0 ? (
           <Card className="p-8 text-center">
             <p className="text-gray-500">No budget reports available.</p>
           </Card>

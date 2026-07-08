@@ -7,6 +7,7 @@ SKIDS is a React + Vite frontend with an Express/MongoDB API backend for SK yout
 - Frontend: React, Vite, Tailwind CSS, React Router
 - Backend: Express, MongoDB, Mongoose
 - Auth: Google Identity Services on the frontend, Google ID token verification on the backend, app JWT for API requests
+- Uploads: signed Cloudinary uploads from the browser with API-secret signing on the backend
 - Deployment targets: Vercel for frontend, Render for backend
 
 ## Local Setup
@@ -32,6 +33,25 @@ SKIDS is a React + Vite frontend with an Express/MongoDB API backend for SK yout
    ```
 
 The frontend defaults to `http://localhost:5173`; the API defaults to `http://localhost:5000/api`.
+
+## Cloudinary Uploads
+
+Profile photos and uploaded document images/files use signed Cloudinary uploads:
+
+1. The frontend asks the backend for an upload signature at `POST /api/uploads/signature`.
+2. The frontend uploads the file directly to Cloudinary.
+3. The frontend saves Cloudinary metadata such as `secureUrl`, `publicId`, `format`, `width`, `height`, and `bytes` to MongoDB through the API.
+
+Keep these variables on the backend only:
+
+```env
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+CLOUDINARY_UPLOAD_FOLDER=skids
+```
+
+Never add `CLOUDINARY_API_SECRET` to Vercel or any frontend environment.
 
 ## Google Auth
 
@@ -85,6 +105,10 @@ GOOGLE_CLIENT_ID=...
 CLIENT_URL=https://your-vercel-app.vercel.app
 CORS_ORIGINS=https://your-vercel-app.vercel.app
 ADMIN_EMAILS=admin@example.com
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+CLOUDINARY_UPLOAD_FOLDER=skids
 ```
 
 ## Vercel Frontend

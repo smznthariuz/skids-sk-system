@@ -51,7 +51,7 @@ router.post(
           googleId: payload.sub,
           email,
           name: payload.name || email,
-          avatar: payload.picture || '',
+          avatar: existingUser?.avatar || payload.picture || '',
           role,
           lastLoginAt: new Date(),
           isActive: true,

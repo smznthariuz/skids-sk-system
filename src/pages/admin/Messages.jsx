@@ -3,6 +3,7 @@ import { IoMailOutline, IoMailOpenOutline, IoTrashOutline, IoPaperPlaneOutline }
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
+import { SkeletonList } from '../../components/common/Skeleton';
 import { getMessages } from '../../utils/mockData';
 
 const Messages = () => {
@@ -10,6 +11,7 @@ const Messages = () => {
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [replyText, setReplyText] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Future API call: fetchMessages()
@@ -19,6 +21,7 @@ const Messages = () => {
 
     const data = getMessages();
     setMessages(data);
+    setLoading(false);
   }, []);
 
   const handleViewMessage = (message) => {
@@ -80,11 +83,14 @@ const Messages = () => {
       </div>
 
       <Card className="p-6">
-        <div className="space-y-3">
-          {messages.length === 0 ? (
-            <p className="text-center text-gray-500 py-8">No messages received.</p>
-          ) : (
-            messages.map((message) => (
+        {loading ? (
+          <SkeletonList rows={4} />
+        ) : (
+          <div className="space-y-3">
+            {messages.length === 0 ? (
+              <p className="text-center text-gray-500 py-8">No messages received.</p>
+            ) : (
+              messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex items-start gap-4 p-4 rounded-lg border transition-all duration-200 cursor-pointer hover:shadow-sm ${
@@ -120,9 +126,10 @@ const Messages = () => {
                   </Button>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+              ))
+            )}
+          </div>
+        )}
       </Card>
 
       {/* View/Reply Modal */}

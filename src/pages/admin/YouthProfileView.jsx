@@ -1,18 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   IoArrowBackOutline, 
   IoDownloadOutline, 
   IoPrintOutline,
   IoPersonOutline,
-  IoMailOutline,
   IoCallOutline,
   IoLocationOutline,
-  IoCalendarOutline,
-  IoBriefcaseOutline,
-  IoBookOutline,
   IoCheckboxOutline,
-  IoHomeOutline,
   IoPeopleOutline,
   IoInformationCircleOutline
 } from 'react-icons/io5';
@@ -39,8 +34,9 @@ const YouthProfileView = () => {
         
         // Demo data from localStorage
         const savedProfile = localStorage.getItem('youthProfile');
+        let parsed = null;
         if (savedProfile) {
-          const parsed = JSON.parse(savedProfile);
+          parsed = JSON.parse(savedProfile);
           setProfile(parsed);
         }
         

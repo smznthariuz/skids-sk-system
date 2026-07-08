@@ -53,6 +53,10 @@ export const api = {
     register: (data) => apiClient.post('/auth/register', data),
   },
 
+  uploads: {
+    signature: (data) => apiClient.post('/uploads/signature', data),
+  },
+
   // Admin endpoints
   admin: {
     // Youth management

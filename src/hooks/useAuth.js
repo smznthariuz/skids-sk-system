@@ -73,6 +73,7 @@ export const AuthProvider = ({ children }) => {
       loading,
       loginWithGoogle,
       logout,
+      updateUser: setUser,
       isAdmin: user?.role === 'admin',
       isYouth: user?.role === 'user',
       isAuthenticated: Boolean(user),

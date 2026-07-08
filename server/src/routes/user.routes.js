@@ -28,7 +28,9 @@ const documentResponse = (document) => ({
   title: document.title,
   type: document.type,
   date: document.createdAt.toISOString().slice(0, 10),
-  fileUrl: document.fileUrl,
+  fileUrl: document.cloudinary?.secureUrl || document.fileUrl,
+  fileKey: document.cloudinary?.publicId || document.fileKey,
+  cloudinary: document.cloudinary || {},
   fileSize: document.fileSize
     ? `${(document.fileSize / 1024 / 1024).toFixed(1)} MB`
     : '0 MB',
@@ -98,6 +100,12 @@ router.put(
   '/user/profile',
   asyncHandler(async (req, res) => {
     req.user.name = req.body.name || req.user.name;
+    req.user.avatar = req.body.avatar || req.user.avatar;
+    req.user.avatarPublicId = req.body.avatarPublicId || req.user.avatarPublicId;
+    req.user.avatarMetadata = {
+      ...req.user.avatarMetadata,
+      ...req.body.avatarMetadata,
+    };
     req.user.barangay = req.body.barangay || req.user.barangay;
     req.user.profile = {
       ...req.user.profile,

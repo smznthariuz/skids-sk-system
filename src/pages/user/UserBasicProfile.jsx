@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { 
   IoPersonOutline, 
   IoMailOutline, 
@@ -16,7 +15,6 @@ import Input from '../../components/common/Input';
 import { useAuth } from '../../hooks/useAuth';
 
 const UserBasicProfile = () => {
-  const navigate = useNavigate();
   const { user, updateProfile, changePassword } = useAuth();
   
   const [isEditing, setIsEditing] = useState(false);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoArrowBackOutline, IoEyeOffOutline, IoEyeOutline } from 'react-icons/io5';
 import skidsLogo from '../../assets/images/skids.svg';

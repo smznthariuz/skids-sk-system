@@ -3,19 +3,40 @@ import { IoDocumentTextOutline, IoDownloadOutline, IoSearchOutline } from 'react
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import { SkeletonGrid } from '../../components/common/Skeleton';
 import { getDocuments } from '../../utils/mockData';
+import { api } from '../../services/api';
 
 const Documents = () => {
   const [documents, setDocuments] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Future API call: fetchDocuments()
-    // axios.get('/api/documents')
-    //   .then(response => setDocuments(response.data))
-    //   .catch(error => console.error('Error fetching documents:', error));
+    let isMounted = true;
 
-    setDocuments(getDocuments());
+    const fetchDocuments = async () => {
+      try {
+        const response = await api.user.getDocuments();
+        if (isMounted) {
+          setDocuments(response.data);
+        }
+      } catch {
+        if (isMounted) {
+          setDocuments(getDocuments());
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchDocuments();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filteredDocuments = documents.filter(doc =>
@@ -33,19 +54,12 @@ const Documents = () => {
   };
 
   const handleDownload = (doc) => {
-    // Future API call: downloadDocument(doc.id)
-    // axios.get(`/api/documents/${doc.id}/download`, { responseType: 'blob' })
-    //   .then(response => {
-    //     const url = window.URL.createObjectURL(new Blob([response.data]));
-    //     const link = document.createElement('a');
-    //     link.href = url;
-    //     link.setAttribute('download', doc.title);
-    //     document.body.appendChild(link);
-    //     link.click();
-    //   })
-    //   .catch(error => console.error('Error downloading document:', error));
+    if (doc.fileUrl) {
+      window.open(doc.fileUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
 
-    alert(`Downloading: ${doc.title}`);
+    alert(`No uploaded file URL is available for ${doc.title}.`);
   };
 
   return (
@@ -65,13 +79,16 @@ const Documents = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredDocuments.length === 0 ? (
+        {loading ? (
+          <SkeletonGrid items={6} />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredDocuments.length === 0 ? (
             <div className="col-span-full text-center py-8 text-gray-500">
               No documents found.
             </div>
-          ) : (
-            filteredDocuments.map((doc) => (
+            ) : (
+              filteredDocuments.map((doc) => (
               <div key={doc.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-primary-50 rounded-lg">
@@ -99,9 +116,10 @@ const Documents = () => {
                   </div>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+              ))
+            )}
+          </div>
+        )}
       </Card>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { IoCloseOutline, IoCalendarOutline, IoTimeOutline, IoLocationOutline } from 'react-icons/io5';
 import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';

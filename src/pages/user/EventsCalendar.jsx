@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { IoLocationOutline, IoTimeOutline } from 'react-icons/io5';
 import Card from '../../components/common/Card';
+import { SkeletonList } from '../../components/common/Skeleton';
 import { getEvents } from '../../utils/mockData';
 
 const EventsCalendar = () => {
   const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -15,6 +17,7 @@ const EventsCalendar = () => {
     //   .catch(error => console.error('Error fetching events:', error));
 
     setEvents(getEvents());
+    setLoading(false);
   }, []);
 
   // Simple month/year navigation
@@ -80,11 +83,14 @@ const EventsCalendar = () => {
         {/* Events List */}
         <Card className="lg:col-span-2 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Events</h3>
-          <div className="space-y-4">
-            {events.length === 0 ? (
+          {loading ? (
+            <SkeletonList rows={3} />
+          ) : (
+            <div className="space-y-4">
+              {events.length === 0 ? (
               <p className="text-gray-500 text-center py-8">No upcoming events scheduled.</p>
-            ) : (
-              events.map((event) => (
+              ) : (
+                events.map((event) => (
                 <div key={event.id} className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
                   <div className="flex-shrink-0 text-center">
                     <div className="bg-primary-100 rounded-lg px-3 py-1">
@@ -111,9 +117,10 @@ const EventsCalendar = () => {
                     <p className="text-sm text-gray-500 mt-1">{event.description}</p>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+                ))
+              )}
+            </div>
+          )}
         </Card>
       </div>
     </div>

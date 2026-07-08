@@ -1,17 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IoPaperPlaneOutline, IoChatbubbleOutline } from 'react-icons/io5';
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
+import { SkeletonList } from '../../components/common/Skeleton';
 
 const UserMessages = () => {
   const [messages, setMessages] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     subject: '',
     message: ''
   });
+
+  useEffect(() => {
+    setLoading(false);
+  }, []);
 
   const handleSend = () => {
     // Future API call: sendMessage(formData)
@@ -58,7 +64,9 @@ const UserMessages = () => {
       </div>
 
       <Card className="p-6">
-        {messages.length === 0 ? (
+        {loading ? (
+          <SkeletonList rows={3} />
+        ) : messages.length === 0 ? (
           <div className="text-center py-12">
             <div className="flex justify-center mb-4">
               <div className="p-4 bg-gray-100 rounded-full">

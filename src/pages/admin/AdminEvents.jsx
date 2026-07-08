@@ -5,10 +5,12 @@ import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Modal from '../../components/common/Modal';
+import { SkeletonTable } from '../../components/common/Skeleton';
 import { getEvents } from '../../utils/mockData';
 
 const AdminEvents = () => {
   const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [formData, setFormData] = useState({
@@ -27,6 +29,7 @@ const AdminEvents = () => {
 
     const data = getEvents();
     setEvents(data);
+    setLoading(false);
   }, []);
 
   const columns = [
@@ -134,11 +137,15 @@ const AdminEvents = () => {
       </div>
 
       <Card className="p-6">
-        <Table
-          columns={columns}
-          data={events}
-          emptyMessage="No events scheduled."
-        />
+        {loading ? (
+          <SkeletonTable rows={5} columns={5} />
+        ) : (
+          <Table
+            columns={columns}
+            data={events}
+            emptyMessage="No events scheduled."
+          />
+        )}
       </Card>
 
       {/* Add/Edit Modal */}

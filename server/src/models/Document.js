@@ -23,6 +23,39 @@ const documentSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    cloudinary: {
+      publicId: {
+        type: String,
+        trim: true,
+        default: '',
+      },
+      secureUrl: {
+        type: String,
+        trim: true,
+        default: '',
+      },
+      resourceType: {
+        type: String,
+        trim: true,
+        default: '',
+      },
+      format: {
+        type: String,
+        trim: true,
+        default: '',
+      },
+      width: Number,
+      height: Number,
+      bytes: {
+        type: Number,
+        default: 0,
+      },
+      originalFilename: {
+        type: String,
+        trim: true,
+        default: '',
+      },
+    },
     fileSize: {
       type: Number,
       default: 0,

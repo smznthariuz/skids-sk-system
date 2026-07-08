@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import Card from '../../components/common/Card';
+import { SkeletonList } from '../../components/common/Skeleton';
 import { getAnnouncements } from '../../utils/mockData';
 
 const Announcements = () => {
   const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Future API call: fetchAnnouncements()
@@ -12,6 +14,7 @@ const Announcements = () => {
     //   .catch(error => console.error('Error fetching announcements:', error));
 
     setAnnouncements(getAnnouncements());
+    setLoading(false);
   }, []);
 
   const getPriorityColor = (priority) => {
@@ -31,7 +34,9 @@ const Announcements = () => {
       </div>
 
       <div className="space-y-4">
-        {announcements.length === 0 ? (
+        {loading ? (
+          <SkeletonList rows={3} />
+        ) : announcements.length === 0 ? (
           <Card className="p-8 text-center">
             <p className="text-gray-500">No announcements available.</p>
           </Card>

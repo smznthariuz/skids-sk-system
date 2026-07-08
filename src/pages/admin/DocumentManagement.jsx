@@ -5,35 +5,76 @@ import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Modal from '../../components/common/Modal';
+import { SkeletonTable } from '../../components/common/Skeleton';
 import { getDocuments } from '../../utils/mockData';
+import { api } from '../../services/api';
+import { uploadToCloudinary } from '../../services/upload';
 
 const DocumentManagement = () => {
   const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     type: '',
-    file: null
+    file: null,
   });
 
   useEffect(() => {
-    // Future API call: fetchDocuments()
-    // axios.get('/api/admin/documents')
-    //   .then(response => setDocuments(response.data))
-    //   .catch(error => console.error('Error fetching documents:', error));
+    let isMounted = true;
 
-    const data = getDocuments();
-    setDocuments(data);
+    const fetchDocuments = async () => {
+      try {
+        const response = await api.admin.getDocuments();
+        if (isMounted) {
+          setDocuments(response.data);
+        }
+      } catch {
+        if (isMounted) {
+          setDocuments(getDocuments());
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchDocuments();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const getStatusColor = (status) => {
     const colors = {
-      'Approved': 'bg-green-100 text-green-700',
-      'Filed': 'bg-blue-100 text-blue-700',
-      'Draft': 'bg-yellow-100 text-yellow-700'
+      Approved: 'bg-green-100 text-green-700',
+      Filed: 'bg-blue-100 text-blue-700',
+      Draft: 'bg-yellow-100 text-yellow-700',
     };
     return colors[status] || 'bg-gray-100 text-gray-700';
+  };
+
+  const handleDownload = (document) => {
+    if (document.fileUrl) {
+      window.open(document.fileUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this document?')) {
+      try {
+        await api.admin.deleteDocument(id);
+      } catch {
+        // Keeps mock-data delete usable when the backend is not running locally.
+      } finally {
+        setDocuments((current) => current.filter((document) => document.id !== id));
+      }
+    }
   };
 
   const columns = [
@@ -47,83 +88,77 @@ const DocumentManagement = () => {
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(row.status)}`}>
           {row.status}
         </span>
-      )
+      ),
     },
     {
       header: 'Actions',
       render: (row) => (
         <div className="flex gap-2">
-          <Button variant="primary" size="sm">
+          <Button
+            variant="primary"
+            size="sm"
+            disabled={!row.fileUrl}
+            onClick={() => handleDownload(row)}
+          >
             <IoDownloadOutline className="w-4 h-4" />
           </Button>
           <Button variant="danger" size="sm" onClick={() => handleDelete(row.id)}>
             <IoTrashOutline className="w-4 h-4" />
           </Button>
         </div>
-      )
-    }
+      ),
+    },
   ];
 
-  const filteredDocuments = documents.filter(doc =>
+  const filteredDocuments = documents.filter((doc) =>
     doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     doc.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDelete = (id) => {
-    // Future API call: deleteDocument(id)
-    // axios.delete(`/api/admin/documents/${id}`)
-    //   .then(() => {
-    //     setDocuments(documents.filter(d => d.id !== id));
-    //   })
-    //   .catch(error => console.error('Error deleting document:', error));
-
-    if (window.confirm('Are you sure you want to delete this document?')) {
-      setDocuments(documents.filter(d => d.id !== id));
+  const handleSubmit = async () => {
+    if (!formData.title || !formData.type || !formData.file) {
+      setError('Add a title, type, and file before uploading.');
+      return;
     }
-  };
 
-  const handleSubmit = () => {
-    // Future API call: uploadDocument(formData)
-    // const formDataObj = new FormData();
-    // formDataObj.append('title', formData.title);
-    // formDataObj.append('type', formData.type);
-    // formDataObj.append('file', formData.file);
-    // 
-    // axios.post('/api/admin/documents', formDataObj, {
-    //   headers: { 'Content-Type': 'multipart/form-data' }
-    // })
-    //   .then(response => {
-    //     setDocuments([...documents, response.data]);
-    //     setIsModalOpen(false);
-    //   })
-    //   .catch(error => console.error('Error uploading document:', error));
+    setError('');
+    setUploading(true);
 
-    if (formData.file) {
-      const newDocument = {
-        id: documents.length + 1,
+    try {
+      const cloudinary = await uploadToCloudinary(formData.file, {
+        purpose: 'documents',
+      });
+
+      const response = await api.admin.uploadDocument({
         title: formData.title,
         type: formData.type,
-        date: new Date().toISOString().split('T')[0],
-        fileSize: `${(formData.file.size / 1024 / 1024).toFixed(1)} MB`,
-        status: 'Draft'
-      };
-      setDocuments([...documents, newDocument]);
+        fileUrl: cloudinary.secureUrl,
+        fileKey: cloudinary.publicId,
+        fileSize: cloudinary.bytes,
+        cloudinary,
+      });
+
+      setDocuments((current) => [response.data, ...current]);
       setIsModalOpen(false);
       setFormData({ title: '', type: '', file: null });
+    } catch (err) {
+      setError(err.message || 'Document upload failed.');
+    } finally {
+      setUploading(false);
     }
   };
 
   const handleFileChange = (e) => {
     setFormData({
       ...formData,
-      file: e.target.files[0]
+      file: e.target.files[0],
     });
   };
 
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -140,6 +175,11 @@ const DocumentManagement = () => {
       </div>
 
       <Card className="p-6">
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
         <div className="mb-6">
           <Input
             placeholder="Search documents..."
@@ -148,14 +188,17 @@ const DocumentManagement = () => {
             icon={IoDocumentTextOutline}
           />
         </div>
-        <Table
-          columns={columns}
-          data={filteredDocuments}
-          emptyMessage="No documents found."
-        />
+        {loading ? (
+          <SkeletonTable rows={5} columns={6} />
+        ) : (
+          <Table
+            columns={columns}
+            data={filteredDocuments}
+            emptyMessage="No documents found."
+          />
+        )}
       </Card>
 
-      {/* Upload Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -189,6 +232,7 @@ const DocumentManagement = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
             <input
               type="file"
+              accept="image/*,application/pdf"
               onChange={handleFileChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
               required
@@ -196,11 +240,11 @@ const DocumentManagement = () => {
           </div>
         </div>
         <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
-          <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+          <Button variant="secondary" onClick={() => setIsModalOpen(false)} disabled={uploading}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleSubmit}>
-            Upload Document
+          <Button variant="primary" onClick={handleSubmit} disabled={uploading}>
+            {uploading ? 'Uploading...' : 'Upload Document'}
           </Button>
         </div>
       </Modal>

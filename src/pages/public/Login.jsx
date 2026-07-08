@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoShieldCheckmarkOutline, IoPersonOutline } from 'react-icons/io5';
 

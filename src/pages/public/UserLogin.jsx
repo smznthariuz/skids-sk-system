@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { IoEyeOffOutline, IoEyeOutline } from 'react-icons/io5';
 import { useAuth } from '../../hooks/useAuth';
@@ -27,13 +27,7 @@ const UserLogin = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleGoogleLogin = async () => {
-    try {
-      // Redirect to Google OAuth endpoint
-      window.location.href = `${process.env.REACT_APP_API_URL}/auth/google`;
-      console.log('Google login initiated');
-    } catch (error) {
-      console.error('Google login error:', error);
-    }
+    navigate('/login');
   };
 
   const handleManualLogin = async (event) => {

@@ -52,7 +52,9 @@ const documentResponse = (document) => ({
   title: document.title,
   type: document.type,
   date: document.createdAt.toISOString().slice(0, 10),
-  fileUrl: document.fileUrl,
+  fileUrl: document.cloudinary?.secureUrl || document.fileUrl,
+  fileKey: document.cloudinary?.publicId || document.fileKey,
+  cloudinary: document.cloudinary || {},
   fileSize: document.fileSize
     ? `${(document.fileSize / 1024 / 1024).toFixed(1)} MB`
     : '0 MB',
@@ -386,9 +388,19 @@ router.post(
     const document = await Document.create({
       title: req.body.title,
       type: req.body.type || 'Other',
-      fileUrl: req.body.fileUrl || '',
-      fileKey: req.body.fileKey || '',
-      fileSize: Number(req.body.fileSize || 0),
+      fileUrl: req.body.fileUrl || req.body.cloudinary?.secureUrl || '',
+      fileKey: req.body.fileKey || req.body.cloudinary?.publicId || '',
+      fileSize: Number(req.body.fileSize || req.body.cloudinary?.bytes || 0),
+      cloudinary: {
+        publicId: req.body.cloudinary?.publicId || req.body.fileKey || '',
+        secureUrl: req.body.cloudinary?.secureUrl || req.body.fileUrl || '',
+        resourceType: req.body.cloudinary?.resourceType || '',
+        format: req.body.cloudinary?.format || '',
+        width: req.body.cloudinary?.width,
+        height: req.body.cloudinary?.height,
+        bytes: Number(req.body.cloudinary?.bytes || req.body.fileSize || 0),
+        originalFilename: req.body.cloudinary?.originalFilename || '',
+      },
       status: req.body.status || 'Draft',
       uploadedBy: req.user._id,
     });
@@ -507,6 +519,12 @@ router.put(
   '/profile',
   asyncHandler(async (req, res) => {
     req.user.name = req.body.name || req.user.name;
+    req.user.avatar = req.body.avatar || req.user.avatar;
+    req.user.avatarPublicId = req.body.avatarPublicId || req.user.avatarPublicId;
+    req.user.avatarMetadata = {
+      ...req.user.avatarMetadata,
+      ...req.body.avatarMetadata,
+    };
     req.user.barangay = req.body.barangay || req.user.barangay;
     req.user.profile = {
       ...req.user.profile,

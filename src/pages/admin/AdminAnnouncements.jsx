@@ -5,10 +5,12 @@ import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Modal from '../../components/common/Modal';
+import { SkeletonTable } from '../../components/common/Skeleton';
 import { getAnnouncements } from '../../utils/mockData';
 
 const AdminAnnouncements = () => {
   const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [formData, setFormData] = useState({
@@ -25,6 +27,7 @@ const AdminAnnouncements = () => {
 
     const data = getAnnouncements();
     setAnnouncements(data);
+    setLoading(false);
   }, []);
 
   const getPriorityColor = (priority) => {
@@ -150,11 +153,15 @@ const AdminAnnouncements = () => {
       </div>
 
       <Card className="p-6">
-        <Table
-          columns={columns}
-          data={announcements}
-          emptyMessage="No announcements found."
-        />
+        {loading ? (
+          <SkeletonTable rows={5} columns={5} />
+        ) : (
+          <Table
+            columns={columns}
+            data={announcements}
+            emptyMessage="No announcements found."
+          />
+        )}
       </Card>
 
       {/* Add/Edit Modal */}

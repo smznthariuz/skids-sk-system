@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { IoMailOutline } from 'react-icons/io5';
 import { api } from '../../services/api';
 
 const ForgotPassword = () => {

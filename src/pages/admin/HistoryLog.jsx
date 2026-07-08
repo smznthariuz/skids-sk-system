@@ -3,11 +3,13 @@ import { IoSearchOutline } from 'react-icons/io5';
 import Card from '../../components/common/Card';
 import Table from '../../components/common/Table';
 import Input from '../../components/common/Input';
+import { SkeletonTable } from '../../components/common/Skeleton';
 import { getActivityLog } from '../../utils/mockData';
 
 const HistoryLog = () => {
   const [logs, setLogs] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Future API call: fetchActivityLog()
@@ -17,6 +19,7 @@ const HistoryLog = () => {
 
     const data = getActivityLog();
     setLogs(data);
+    setLoading(false);
   }, []);
 
   const columns = [
@@ -48,11 +51,15 @@ const HistoryLog = () => {
             icon={IoSearchOutline}
           />
         </div>
-        <Table
-          columns={columns}
-          data={filteredLogs}
-          emptyMessage="No activity logs found."
-        />
+        {loading ? (
+          <SkeletonTable rows={5} columns={4} />
+        ) : (
+          <Table
+            columns={columns}
+            data={filteredLogs}
+            emptyMessage="No activity logs found."
+          />
+        )}
       </Card>
     </div>
   );

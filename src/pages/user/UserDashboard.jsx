@@ -7,12 +7,14 @@ import {
   IoChatbubbleOutline
 } from 'react-icons/io5';
 import Card from '../../components/common/Card';
+import { SkeletonCard, SkeletonList } from '../../components/common/Skeleton';
 import { getAnnouncements, getEvents, getBudgetReports } from '../../utils/mockData';
 
 const UserDashboard = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [events, setEvents] = useState([]);
   const [budgetReports, setBudgetReports] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Future API calls
@@ -23,6 +25,7 @@ const UserDashboard = () => {
     setAnnouncements(getAnnouncements().slice(0, 3));
     setEvents(getEvents().slice(0, 3));
     setBudgetReports(getBudgetReports().slice(0, 3));
+    setLoading(false);
   }, []);
 
   return (
@@ -57,7 +60,13 @@ const UserDashboard = () => {
       </div>
 
       {/* Announcements & Events */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {loading ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SkeletonList rows={2} />
+          <SkeletonList rows={2} />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card title="Latest Announcements" className="p-6">
           <div className="space-y-4">
             {announcements.length === 0 ? (
@@ -89,11 +98,19 @@ const UserDashboard = () => {
             )}
           </div>
         </Card>
-      </div>
+        </div>
+      )}
 
       {/* Budget Summary */}
       <div className="mt-6">
         <Card title="Budget Transparency" className="p-6">
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {Array.from({ length: 3 }, (_, index) => (
+                <SkeletonCard key={index} />
+              ))}
+            </div>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {budgetReports.length === 0 ? (
               <p className="text-gray-500 text-center col-span-3 py-4">No budget reports available.</p>
@@ -107,6 +124,7 @@ const UserDashboard = () => {
               ))
             )}
           </div>
+          )}
         </Card>
       </div>
     </div>

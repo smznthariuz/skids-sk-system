@@ -5,10 +5,12 @@ import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Modal from '../../components/common/Modal';
+import { SkeletonTable } from '../../components/common/Skeleton';
 import { getBudgetReports } from '../../utils/mockData';
 
 const BudgetManagement = () => {
   const [budgetData, setBudgetData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState(null);
   const [formData, setFormData] = useState({
@@ -26,6 +28,7 @@ const BudgetManagement = () => {
 
     const data = getBudgetReports();
     setBudgetData(data);
+    setLoading(false);
   }, []);
 
   const getStatusColor = (status) => {
@@ -151,11 +154,15 @@ const BudgetManagement = () => {
       </div>
 
       <Card className="p-6">
-        <Table
-          columns={columns}
-          data={budgetData}
-          emptyMessage="No budget reports found."
-        />
+        {loading ? (
+          <SkeletonTable rows={5} columns={6} />
+        ) : (
+          <Table
+            columns={columns}
+            data={budgetData}
+            emptyMessage="No budget reports found."
+          />
+        )}
       </Card>
 
       {/* Add/Edit Modal */}

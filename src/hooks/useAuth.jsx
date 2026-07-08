@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api';
 
 const AuthContext = createContext(null);
@@ -70,10 +70,10 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const clearToken = () => {
+  const clearToken = useCallback(() => {
     localStorage.removeItem('authToken');
     sessionStorage.removeItem('authToken');
-  };
+  }, []);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const response = await api.auth.me();
         setUser(response.data?.user || response.data);
-      } catch (error) {
+      } catch {
         clearToken();
       } finally {
         setLoading(false);
@@ -101,9 +101,9 @@ export const AuthProvider = ({ children }) => {
     };
 
     initializeAuth();
-  }, []);
+  }, [clearToken]);
 
-  const login = async ({ email, password, remember = true }) => {
+  const login = useCallback(async ({ email, password, remember = true }) => {
     const normalizedEmail = String(email || '').trim().toLowerCase();
     const demoUser = getDemoUser(normalizedEmail, password);
 
@@ -137,23 +137,33 @@ export const AuthProvider = ({ children }) => {
 
     setUser(userData);
     return payload;
-  };
+  }, []);
 
-  const register = async (data) => {
+  const register = useCallback(async (data) => {
     const response = await api.auth.register(data);
     return response.data;
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     clearToken();
     setUser(null);
 
     try {
       await api.auth.logout();
-    } catch (_) {
-      // ignore cleanup errors
+    } catch {
+      // Ignore cleanup errors.
     }
-  };
+  }, [clearToken]);
+
+  const updateProfile = useCallback(async (data) => {
+    const response = await api.user.updateProfile(data);
+    setUser(response.data);
+    return response.data;
+  }, []);
+
+  const changePassword = useCallback(async () => {
+    throw new Error('Password changes are unavailable for Google-authenticated accounts.');
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -165,8 +175,10 @@ export const AuthProvider = ({ children }) => {
       login,
       logout,
       register,
+      updateProfile,
+      changePassword,
     }),
-    [user, loading]
+    [user, loading, login, logout, register, updateProfile, changePassword]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
