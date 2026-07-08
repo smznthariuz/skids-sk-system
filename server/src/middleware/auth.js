@@ -20,7 +20,7 @@ export const requireAuth = asyncHandler(async (req, res, next) => {
   }
 
   const user = await User.findById(decoded.sub);
-  if (!user || !user.isActive) {
+  if (!user || !user.isActive || ['pending', 'suspended'].includes(user.status)) {
     res.status(401);
     throw new Error('Authenticated user was not found');
   }

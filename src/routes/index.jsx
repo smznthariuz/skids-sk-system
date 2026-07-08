@@ -124,8 +124,10 @@ const AppRoutes = () => {
       <Route path="/terms" element={<TermsAndCondition />} />
       <Route path="/register" element={<Register />} />
       <Route path="/create-account" element={<CreateAccountCredentials />} />
+      <Route path="/create-credentials" element={<Navigate to="/create-account" replace />} />
       <Route path="/account-created" element={<AccountCreated />} />
       <Route path="/youth-profile-form" element={<YouthProfileForm />} />
+      <Route path="/youth-profile" element={<Navigate to="/youth-profile-form" replace />} />
 
       <Route
         path="/admin"

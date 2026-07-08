@@ -6,7 +6,7 @@ SKIDS is a React + Vite frontend with an Express/MongoDB API backend for SK yout
 
 - Frontend: React, Vite, Tailwind CSS, React Router
 - Backend: Express, MongoDB, Mongoose
-- Auth: Google Identity Services on the frontend, Google ID token verification on the backend, app JWT for API requests
+- Auth: Google Identity Services, email/password auth, and app JWT for API requests
 - Uploads: signed Cloudinary uploads from the browser with API-secret signing on the backend
 - Deployment targets: Vercel for frontend, Render for backend
 
@@ -63,7 +63,10 @@ Create a Google OAuth Web Client ID, then use the same client ID in both places:
 Add these authorized JavaScript origins in Google Cloud:
 
 - `http://localhost:5173`
+- `http://localhost:4173`
 - Your Vercel frontend URL
+
+Use origins only, not full routes. For example, add `https://your-app.vercel.app`, not `https://your-app.vercel.app/login`. If Google shows `Error 400: origin_mismatch`, add the exact browser origin where the app is running to the OAuth client.
 
 Admins are assigned by email through `ADMIN_EMAILS`, for example:
 
@@ -73,11 +76,27 @@ ADMIN_EMAILS=chair@example.com,secretary@example.com
 
 Any verified Google account not listed there signs in as a youth user.
 
+## Account Creation
+
+Youth account flow:
+
+```text
+/user-login -> /terms -> /youth-profile-form -> /create-account -> /account-created
+```
+
+SK officer account flow:
+
+```text
+/officer-login -> /register -> /account-created
+```
+
+Both flows call `POST /api/auth/register`, store users in MongoDB, and then send the user back to the matching login screen. Email/password login uses `POST /api/auth/login`.
+
 ## MongoDB Schema
 
 The backend Mongoose models live in `server/src/models`:
 
-- `User`: Google identity, role, barangay, profile, active state
+- `User`: Google identity, password auth hash, role, barangay, profile, active state
 - `YouthProfile`: SK youth registry records
 - `Announcement`: official SK posts
 - `Event`: scheduled SK events

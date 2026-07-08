@@ -8,6 +8,17 @@ const userSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    passwordHash: {
+      type: String,
+      select: false,
+      default: '',
+    },
+    authProvider: {
+      type: String,
+      enum: ['google', 'password', 'both'],
+      default: 'google',
+      index: true,
+    },
     email: {
       type: String,
       required: true,
@@ -100,6 +111,12 @@ const userSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true,
+      index: true,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'pending', 'suspended'],
+      default: 'active',
       index: true,
     },
     lastLoginAt: Date,

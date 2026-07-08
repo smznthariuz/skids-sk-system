@@ -2,9 +2,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoArrowBackOutline, IoEyeOffOutline, IoEyeOutline } from 'react-icons/io5';
 import skidsLogo from '../../assets/images/skids.svg';
+import { useAuth } from '../../hooks/useAuth';
+
+const YOUTH_PROFILE_DRAFT_KEY = 'skidsYouthProfileDraft';
+
+const getYouthProfileDraft = () => {
+  try {
+    return JSON.parse(sessionStorage.getItem(YOUTH_PROFILE_DRAFT_KEY) || '{}');
+  } catch {
+    return {};
+  }
+};
 
 const CreateAccountCredentials = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -35,19 +47,39 @@ const CreateAccountCredentials = () => {
     setIsSubmitting(true);
 
     try {
-      // API call to create account with credentials
-      console.log('Account created with:', { email, password });
-      // After successful creation, navigate to login
-      navigate('/user-login');
+      const youthProfile = getYouthProfileDraft();
+
+      if (!youthProfile.firstName || !youthProfile.lastName) {
+        throw new Error('Please complete your youth profile information first.');
+      }
+
+      await register({
+        accountType: 'youth',
+        role: 'user',
+        email,
+        password,
+        firstName: youthProfile.firstName,
+        middleName: youthProfile.middleName,
+        lastName: youthProfile.lastName,
+        suffix: youthProfile.suffix,
+        barangay: youthProfile.barangay,
+        youthProfile,
+      });
+
+      sessionStorage.removeItem(YOUTH_PROFILE_DRAFT_KEY);
+      navigate('/account-created', {
+        replace: true,
+        state: { accountType: 'youth' },
+      });
     } catch (err) {
-      setError(err.message || 'Failed to create account.');
+      setError(err?.response?.data?.message || err.message || 'Failed to create account.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleBack = () => {
-    navigate('/youth-profile');
+    navigate('/youth-profile-form');
   };
 
   return (

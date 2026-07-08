@@ -131,7 +131,7 @@ const OfficerLogin = () => {
           {/* Footer Links */}
           <div className="mt-6 text-center">
             <Link to="/register" className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors">
-              Create New Admin Account
+              Create SK Officer Account
             </Link>
           </div>
 
@@ -140,7 +140,7 @@ const OfficerLogin = () => {
               onClick={handleBackToHome}
               className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
             >
-              — Back to Home
+              Back to Home
             </button>
           </div>
         </div>

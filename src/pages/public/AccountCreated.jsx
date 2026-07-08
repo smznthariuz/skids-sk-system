@@ -1,12 +1,15 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { IoCheckmarkCircleOutline } from 'react-icons/io5';
 import skidsLogo from '../../assets/images/skids.svg';
 
 const AccountCreated = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const accountType = location.state?.accountType || 'officer';
+  const isOfficer = accountType === 'officer';
 
   const handleGoToLogin = () => {
-    navigate('/officer-login');
+    navigate(isOfficer ? '/officer-login' : '/user-login');
   };
 
   return (
@@ -49,7 +52,7 @@ const AccountCreated = () => {
           {/* Message */}
           <div className="text-center mb-8">
             <p className="text-sm text-gray-500 leading-relaxed">
-              Your SK Officer account has been successfully<br />
+              Your {isOfficer ? 'SK Officer' : 'youth'} account has been successfully<br />
               registered. You can now log in.
             </p>
           </div>
@@ -59,7 +62,7 @@ const AccountCreated = () => {
             onClick={handleGoToLogin}
             className="w-full py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            Go to SK Officer Login
+            Go to {isOfficer ? 'SK Officer' : 'User'} Login
           </button>
         </div>
       </div>

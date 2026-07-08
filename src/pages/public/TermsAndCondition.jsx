@@ -6,7 +6,7 @@ const TermsAndConditions = () => {
   const navigate = useNavigate();
 
   const handleContinue = () => {
-    navigate('/youth-profile');
+    navigate('/youth-profile-form');
   };
 
   const handleCancel = () => {

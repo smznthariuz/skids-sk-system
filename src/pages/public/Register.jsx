@@ -48,6 +48,8 @@ const Register = () => {
 
     try {
       await register({
+        accountType: 'officer',
+        role: 'admin',
         firstName,
         middleInitial,
         lastName,
@@ -57,12 +59,10 @@ const Register = () => {
       });
       setSuccess('Account created successfully. You may now log in.');
       setTimeout(() => {
-        // Redirect based on position
-        if (position === 'SK Chairperson' || position === 'SK Kagawad' || position === 'SK Secretary' || position === 'SK Treasurer' || position === 'SK Auditor') {
-          navigate('/account-created', { replace: true });
-        } else {
-          navigate('/user-login', { replace: true });
-        }
+        navigate('/account-created', {
+          replace: true,
+          state: { accountType: 'officer' },
+        });
       }, 1500);
     } catch (registrationError) {
       setError(registrationError?.response?.data?.message || registrationError.message || 'Unable to register account.');
@@ -235,14 +235,14 @@ const Register = () => {
               disabled={isSubmitting}
               className="w-full py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Creating account...' : 'Create Admin Account'}
+              {isSubmitting ? 'Creating account...' : 'Create SK Officer Account'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-500">
               Already have an account?{' '}
-              <Link to="/user-login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+              <Link to="/officer-login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
                 Login here
               </Link>
             </p>

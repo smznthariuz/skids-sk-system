@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoArrowBackOutline, IoCloudUploadOutline, IoPersonOutline } from 'react-icons/io5';
 
+const YOUTH_PROFILE_DRAFT_KEY = 'skidsYouthProfileDraft';
+
 const YouthProfileForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -23,10 +25,8 @@ const YouthProfileForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form data:', formData);
-    // Save form data to state/context if needed
-    // Submit logic here
-    navigate('/create-credentials');
+    sessionStorage.setItem(YOUTH_PROFILE_DRAFT_KEY, JSON.stringify(formData));
+    navigate('/create-account');
   };
 
   const handleBack = () => {
