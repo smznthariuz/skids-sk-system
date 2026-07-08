@@ -1,7 +1,16 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import AdminLayout from '../layouts/AdminLayout';
 import UserLayout from '../layouts/UserLayout';
-import Login from '../pages/auth/Login';
+import Landing from '../pages/public/Login';
+import GoogleLogin from '../pages/auth/Login';
+import UserLogin from '../pages/public/UserLogin';
+import OfficerLogin from '../pages/public/OfficerLogin';
+import ForgotPassword from '../pages/public/ForgotPassword';
+import TermsAndCondition from '../pages/public/TermsAndCondition';
+import Register from '../pages/public/Register';
+import CreateAccountCredentials from '../pages/public/CreateAccountCredentials';
+import AccountCreated from '../pages/public/AccountCreated';
+import YouthProfileForm from '../pages/public/YouthProfileForm';
 import useAuth from '../hooks/useAuth';
 
 // Admin Pages
@@ -68,27 +77,55 @@ const GuestRoute = ({ children }) => {
   return children;
 };
 
-const HomeRedirect = () => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return <LoadingScreen />;
-  }
-
-  return <Navigate to={user ? roleHome(user.role) : '/login'} replace />;
-};
-
 const AppRoutes = () => {
   return (
     <Routes>
       <Route
-        path="/login"
+        path="/"
         element={
           <GuestRoute>
-            <Login />
+            <Landing />
           </GuestRoute>
         }
       />
+      <Route
+        path="/login"
+        element={
+          <GuestRoute>
+            <Landing />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/google-login"
+        element={
+          <GuestRoute>
+            <GoogleLogin />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/user-login"
+        element={
+          <GuestRoute>
+            <UserLogin />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/officer-login"
+        element={
+          <GuestRoute>
+            <OfficerLogin />
+          </GuestRoute>
+        }
+      />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/terms" element={<TermsAndCondition />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/create-account" element={<CreateAccountCredentials />} />
+      <Route path="/account-created" element={<AccountCreated />} />
+      <Route path="/youth-profile-form" element={<YouthProfileForm />} />
 
       <Route
         path="/admin"
@@ -126,8 +163,7 @@ const AppRoutes = () => {
         <Route path="profile" element={<UserProfile />} />
       </Route>
 
-      <Route path="/" element={<HomeRedirect />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 };

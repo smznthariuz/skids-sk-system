@@ -12,6 +12,37 @@ import { api } from '../services/api';
 const TOKEN_KEY = 'authToken';
 const AuthContext = createContext(null);
 
+const DEMO_ACCOUNTS = {
+  'admin@skids.test': {
+    email: 'admin@skids.test',
+    password: 'admin123',
+    role: 'admin',
+    name: 'Admin Demo',
+  },
+  'user@skids.test': {
+    email: 'user@skids.test',
+    password: 'youth123',
+    role: 'user',
+    name: 'Youth Demo',
+  },
+};
+
+const getDemoUser = (email, password) => {
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  const account = DEMO_ACCOUNTS[normalizedEmail];
+
+  if (!account || String(password || '') !== account.password) {
+    return null;
+  }
+
+  return {
+    id: account.role === 'admin' ? 'demo-admin' : 'demo-user',
+    email: account.email,
+    role: account.role,
+    name: account.name,
+  };
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(() => Boolean(localStorage.getItem(TOKEN_KEY)));
@@ -56,6 +87,22 @@ export const AuthProvider = ({ children }) => {
     return response.data.user;
   }, []);
 
+  const login = useCallback(async ({ email, password }) => {
+    const demoUser = getDemoUser(email, password);
+
+    if (demoUser) {
+      const token = demoUser.role === 'admin' ? 'demo-token-admin' : 'demo-token-user';
+      localStorage.setItem(TOKEN_KEY, token);
+      setUser(demoUser);
+      return { token, user: demoUser };
+    }
+
+    const response = await api.auth.login({ email, password });
+    localStorage.setItem(TOKEN_KEY, response.data.token);
+    setUser(response.data.user);
+    return response.data;
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await api.auth.logout();
@@ -71,6 +118,7 @@ export const AuthProvider = ({ children }) => {
     () => ({
       user,
       loading,
+      login,
       loginWithGoogle,
       logout,
       updateUser: setUser,
@@ -78,7 +126,7 @@ export const AuthProvider = ({ children }) => {
       isYouth: user?.role === 'user',
       isAuthenticated: Boolean(user),
     }),
-    [user, loading, loginWithGoogle, logout]
+    [user, loading, login, loginWithGoogle, logout]
   );
 
   return createElement(AuthContext.Provider, { value }, children);

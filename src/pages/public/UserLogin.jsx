@@ -27,7 +27,7 @@ const UserLogin = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleGoogleLogin = async () => {
-    navigate('/login');
+    navigate('/google-login');
   };
 
   const handleManualLogin = async (event) => {

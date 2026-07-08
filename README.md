@@ -115,7 +115,7 @@ CLOUDINARY_UPLOAD_FOLDER=skids
 
 `vercel.json` is configured for a Vite SPA.
 
-Required Vercel environment variables:
+Required Vercel environment variables. `VITE_API_URL` can include `/api`; the app also normalizes a plain Render root URL safely.
 
 ```env
 VITE_API_URL=https://your-render-api.onrender.com/api
