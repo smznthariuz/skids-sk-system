@@ -20,7 +20,7 @@ const Sidebar = ({ isOpen, onClose, role = 'admin' }) => {
     { path: '/admin/budget', icon: IoWalletOutline, label: 'Budget' },
     { path: '/admin/documents', icon: IoDocumentTextOutline, label: 'Documents' },
     { path: '/admin/messages', icon: IoChatbubbleOutline, label: 'Messages' },
-    { path: '/admin/history', icon: IoTimeOutline, label: 'History Log' },
+    { path: '/admin/history', icon: IoTimeOutline, label: 'Activity Logs' },
     { path: '/admin/profile', icon: IoPersonOutline, label: 'Profile' },
   ];
 

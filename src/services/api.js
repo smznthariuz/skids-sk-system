@@ -102,7 +102,7 @@ export const api = {
     markMessageRead: (id) => apiClient.put(`/admin/messages/${id}/read`),
 
     // History
-    getHistory: () => apiClient.get('/admin/history'),
+    getHistory: (params) => apiClient.get('/admin/history', { params }),
 
     // Profile
     getProfile: () => apiClient.get('/admin/profile'),

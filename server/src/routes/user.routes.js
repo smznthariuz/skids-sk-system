@@ -4,6 +4,7 @@ import BudgetReport from '../models/BudgetReport.js';
 import Document from '../models/Document.js';
 import Event from '../models/Event.js';
 import Message from '../models/Message.js';
+import { logActivity } from '../utils/activityLogger.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { requireAuth } from '../middleware/auth.js';
 import { publicUser } from '../utils/auth.js';
@@ -88,6 +89,16 @@ router.post(
       message: req.body.message,
     });
 
+    await logActivity({
+      req,
+      user: req.user,
+      action: 'Sent message',
+      actionType: 'create',
+      resourceType: 'Message',
+      resourceId: message._id,
+      details: message.subject,
+    });
+
     res.status(201).json(message);
   })
 );
@@ -117,6 +128,16 @@ router.put(
       workStatus: req.body.workStatus ?? req.user.profile?.workStatus,
     };
     await req.user.save();
+
+    await logActivity({
+      req,
+      user: req.user,
+      action: 'Updated user profile',
+      actionType: 'profile_update',
+      resourceType: 'User',
+      resourceId: req.user._id,
+      details: req.user.name,
+    });
 
     res.json(publicUser(req.user));
   })

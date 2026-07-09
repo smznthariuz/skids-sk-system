@@ -6,6 +6,7 @@ import Document from '../models/Document.js';
 import Event from '../models/Event.js';
 import Message from '../models/Message.js';
 import YouthProfile from '../models/YouthProfile.js';
+import { inferActionType, logActivity } from '../utils/activityLogger.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { authorize, requireAuth } from '../middleware/auth.js';
 import { publicUser } from '../utils/auth.js';
@@ -14,16 +15,25 @@ const router = express.Router();
 
 router.use(requireAuth, authorize('admin'));
 
-const logActivity = async ({ user, action, resourceType, resourceId, details, metadata }) => {
-  await ActivityLog.create({
-    actor: user._id,
-    actorName: user.name,
-    action,
-    resourceType,
-    resourceId,
-    details,
-    metadata,
-  });
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const positiveInteger = (value, fallback, maximum) => {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? Math.min(parsed, maximum) : fallback;
+};
+
+const validDate = (value) => {
+  const date = new Date(String(value || ''));
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const legacyActionPatterns = {
+  login: /^Logged in/i,
+  logout: /^Logged out/i,
+  create: /^(Created|Posted|Uploaded|Sent|Replied|Registered)/i,
+  update: /^(Updated|Edited|Marked)/i,
+  delete: /^(Deleted|Removed)/i,
+  profile_update: /^Updated (admin|user) profile/i,
 };
 
 const parseAmount = (amount) => {
@@ -491,6 +501,16 @@ router.put(
       throw new Error('Message not found');
     }
 
+    await logActivity({
+      req,
+      user: req.user,
+      action: 'Marked message as read',
+      actionType: 'update',
+      resourceType: 'Message',
+      resourceId: message._id,
+      details: message.subject,
+    });
+
     res.json(message);
   })
 );
@@ -498,16 +518,94 @@ router.put(
 router.get(
   '/history',
   asyncHandler(async (req, res) => {
-    const logs = await ActivityLog.find().sort({ createdAt: -1 }).limit(200);
-    res.json(
-      logs.map((log) => ({
+    const page = positiveInteger(req.query.page, 1, 100000);
+    const limit = positiveInteger(req.query.limit, 25, 100);
+    const query = {};
+    const search = String(req.query.search || '').trim();
+    const actionType = String(req.query.actionType || '').trim();
+    const resourceType = String(req.query.resourceType || '').trim();
+
+    if (search) {
+      const expression = new RegExp(escapeRegExp(search), 'i');
+      query.$or = [
+        { actorName: expression },
+        { action: expression },
+        { details: expression },
+      ];
+    }
+
+    if (actionType) {
+      query.$and = [
+        {
+          $or: [
+            { actionType },
+            {
+              actionType: { $exists: false },
+              action: legacyActionPatterns[actionType] || /^$/,
+            },
+          ],
+        },
+      ];
+    }
+
+    if (resourceType) {
+      query.resourceType = resourceType;
+    }
+
+    if (req.query.dateFrom || req.query.dateTo) {
+      query.createdAt = {};
+
+      if (req.query.dateFrom) {
+        const dateFrom = validDate(req.query.dateFrom);
+        if (dateFrom) query.createdAt.$gte = dateFrom;
+      }
+
+      if (req.query.dateTo) {
+        const dateTo = validDate(req.query.dateTo);
+        if (dateTo) query.createdAt.$lte = dateTo;
+      }
+
+      if (Object.keys(query.createdAt).length === 0) {
+        delete query.createdAt;
+      }
+    }
+
+    const [logs, total, resourceTypes] = await Promise.all([
+      ActivityLog.find(query)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit),
+      ActivityLog.countDocuments(query),
+      ActivityLog.distinct('resourceType', { resourceType: { $ne: '' } }),
+    ]);
+
+    res.json({
+      logs: logs.map((log) => ({
         id: log._id.toString(),
         user: log.actorName,
+        actorRole: log.actorRole,
+        actionType:
+          log.actionType && log.actionType !== 'other'
+            ? log.actionType
+            : inferActionType(log.action),
         action: log.action,
+        resourceType: log.resourceType,
+        resourceId: log.resourceId?.toString() || '',
         details: log.details,
-        date: log.createdAt.toLocaleString(),
-      }))
-    );
+        ipAddress: log.ipAddress,
+        date: log.createdAt.toISOString(),
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      },
+      filters: {
+        actionTypes: ['login', 'logout', 'create', 'update', 'delete', 'profile_update'],
+        resourceTypes: resourceTypes.sort(),
+      },
+    });
   })
 );
 
@@ -534,6 +632,16 @@ router.put(
       address: req.body.address ?? req.user.profile?.address,
     };
     await req.user.save();
+
+    await logActivity({
+      req,
+      user: req.user,
+      action: 'Updated admin profile',
+      actionType: 'profile_update',
+      resourceType: 'User',
+      resourceId: req.user._id,
+      details: req.user.name,
+    });
 
     res.json(publicUser(req.user));
   })

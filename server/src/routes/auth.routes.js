@@ -2,6 +2,7 @@ import { OAuth2Client } from 'google-auth-library';
 import express from 'express';
 import User from '../models/User.js';
 import YouthProfile from '../models/YouthProfile.js';
+import { logActivity } from '../utils/activityLogger.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { requireAuth } from '../middleware/auth.js';
 import {
@@ -159,6 +160,17 @@ router.post(
       await createYouthProfileForUser({ user, body: req.body });
     }
 
+    await logActivity({
+      req,
+      user,
+      action: 'Registered account',
+      actionType: 'create',
+      resourceType: 'User',
+      resourceId: user._id,
+      details: user.email,
+      metadata: { authProvider: 'password' },
+    });
+
     res.status(201).json({
       token: signAuthToken(user),
       user: publicUser(user),
@@ -191,6 +203,17 @@ router.post(
 
     user.lastLoginAt = new Date();
     await user.save();
+
+    await logActivity({
+      req,
+      user,
+      action: 'Logged in',
+      actionType: 'login',
+      resourceType: 'User',
+      resourceId: user._id,
+      details: 'Email and password',
+      metadata: { authProvider: 'password' },
+    });
 
     res.json({
       token: signAuthToken(user),
@@ -260,6 +283,17 @@ router.post(
       }
     );
 
+    await logActivity({
+      req,
+      user,
+      action: 'Logged in',
+      actionType: 'login',
+      resourceType: 'User',
+      resourceId: user._id,
+      details: 'Google',
+      metadata: { authProvider: 'google' },
+    });
+
     res.json({
       token: signAuthToken(user),
       user: publicUser(user),
@@ -275,8 +309,22 @@ router.get(
   })
 );
 
-router.post('/logout', requireAuth, (req, res) => {
-  res.json({ message: 'Logged out' });
-});
+router.post(
+  '/logout',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    await logActivity({
+      req,
+      user: req.user,
+      action: 'Logged out',
+      actionType: 'logout',
+      resourceType: 'User',
+      resourceId: req.user._id,
+      details: req.user.email,
+    });
+
+    res.json({ message: 'Logged out' });
+  })
+);
 
 export default router;

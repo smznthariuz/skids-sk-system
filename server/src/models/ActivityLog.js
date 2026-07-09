@@ -13,6 +13,18 @@ const activityLogSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    actorRole: {
+      type: String,
+      trim: true,
+      default: '',
+      index: true,
+    },
+    actionType: {
+      type: String,
+      enum: ['login', 'logout', 'create', 'update', 'delete', 'profile_update', 'other'],
+      default: 'other',
+      index: true,
+    },
     action: {
       type: String,
       required: true,
@@ -38,11 +50,22 @@ const activityLogSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       default: {},
     },
+    ipAddress: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    userAgent: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   { timestamps: true }
 );
 
 activityLogSchema.index({ action: 'text', actorName: 'text', details: 'text' });
+activityLogSchema.index({ createdAt: -1, actionType: 1, resourceType: 1 });
 
 const ActivityLog = mongoose.model('ActivityLog', activityLogSchema);
 

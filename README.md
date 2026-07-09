@@ -103,7 +103,14 @@ The backend Mongoose models live in `server/src/models`:
 - `BudgetReport`: transparency reports with numeric amounts
 - `Document`: document metadata and future file URLs
 - `Message`: youth messages and admin replies
-- `ActivityLog`: auditable admin actions
+- `ActivityLog`: authentication, create, edit, delete, and profile-update audit records
+
+## Activity Logs
+
+Admins can open `/admin/history` to view the MongoDB-backed activity log. The page
+supports search, action and resource filters, local date ranges, refresh, and pagination.
+Successful login/logout events, content changes, user messages, and profile updates are
+recorded with the actor, role, timestamp, IP address, and browser user agent.
 
 ## Render Backend
 
